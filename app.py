@@ -8,13 +8,58 @@ st.set_page_config(
     layout="wide"
 )
 
-# Cargar de datos
-df1 = pd.read_csv('parte_1.csv')
-df2 = pd.read_csv('parte_2.csv')
-df = pd.concat([df1, df2], ignore_index=True)
-df['date'] = pd.to_datetime(df['date'])
-
 st.title("Dashboard de Ventas")
+
+# Cargador de archivos en la barra lateral
+st.sidebar.header("Carga de archivos CSV")
+
+archivo1 = st.sidebar.file_uploader(
+    "Sube parte_1.csv", 
+    type=['csv'],
+    key="file1"
+)
+
+archivo2 = st.sidebar.file_uploader(
+    "Sube parte_2.csv", 
+    type=['csv'],
+    key="file2"
+)
+
+# Verificar si ambos archivos están cargados
+if archivo1 is None or archivo2 is None:
+    st.warning("Por favor, sube ambos archivos CSV para continuar.")
+    st.info("Debes subir dos archivos: parte_1.csv y parte_2.csv")
+    
+    # Mostrar ejemplo del formato esperado
+    with st.expander("📋 Formato de datos esperado"):
+        st.write("Los archivos CSV deben contener las siguientes columnas:")
+        st.code("""
+date,store_nbr,family,sales,onpromotion,state,day_of_week,week,month,year,store_type,transactions
+2023-01-01,1,PRODUCT_A,1000,0,STATE_A,1,1,1,2023,TYPE_A,50
+2023-01-01,2,PRODUCT_B,1500,10,STATE_B,1,1,1,2023,TYPE_B,75
+        """)
+    
+    st.stop()
+
+# Cargar datos si ambos archivos están presentes
+try:
+    df1 = pd.read_csv(archivo1)
+    df2 = pd.read_csv(archivo2)
+    
+    st.sidebar.success("Archivos cargados exitosamente!")
+    st.sidebar.write(f"parte_1.csv: {len(df1)} filas")
+    st.sidebar.write(f"parte_2.csv: {len(df2)} filas")
+    
+    # Concatenar los DataFrames
+    df = pd.concat([df1, df2], ignore_index=True)
+    df['date'] = pd.to_datetime(df['date'])
+    
+    st.sidebar.write(f"Total combinado: {len(df)} filas")
+    st.sidebar.write(f"Rango de fechas: {df['date'].min().date()} a {df['date'].max().date()}")
+    
+except Exception as e:
+    st.error(f" Error al cargar los archivos: {e}")
+    st.stop()
 
 # Pestañas
 tab1, tab2, tab3, tab4 = st.tabs([
